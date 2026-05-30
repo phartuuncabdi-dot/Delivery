@@ -1,0 +1,40 @@
+@baseUrl = http://localhost:5119
+@token = YOUR_TOKEN_HERE
+
+### Login Admin
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@delivery.com",
+  "password": "Admin@123"
+}
+
+### Register Customer
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "customer1@test.com",
+  "password": "Customer@123",
+  "name": "Ahmed Ali",
+  "phone": "0612345678",
+  "address": "Mogadishu Hodan",
+  "role": "Customer"
+}
+
+### Create Order (Customer token)
+POST {{baseUrl}}/api/orders
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "productName": "Pizza Large",
+  "quantity": 2,
+  "deliveryAddress": "Hodan District",
+  "scheduledDate": "2026-05-17T14:00:00"
+}
+
+### Admin - All Orders
+GET {{baseUrl}}/api/admin/orders
+Authorization: Bearer {{token}}

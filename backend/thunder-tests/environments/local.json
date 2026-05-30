@@ -1,0 +1,12 @@
+{
+  "client": "Thunder Client",
+  "environmentName": "Local",
+  "dateExported": "2026-05-16",
+  "version": "1.0",
+  "variables": [
+    { "name": "baseUrl", "value": "http://localhost:5119" },
+    { "name": "token", "value": "" },
+    { "name": "orderId", "value": "1" },
+    { "name": "driverId", "value": "1" }
+  ]
+}

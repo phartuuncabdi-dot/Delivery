@@ -1,0 +1,290 @@
+{
+  "info": {
+    "name": "Delivery System API",
+    "description": "Import into Postman. Run Auth > Login Admin first — token saves automatically.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5119" },
+    { "key": "token", "value": "" },
+    { "key": "orderId", "value": "1" },
+    { "key": "driverId", "value": "1" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  var json = pm.response.json();",
+                  "  pm.collectionVariables.set('token', json.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@delivery.com\",\n  \"password\": \"Admin@123\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/login"
+          }
+        },
+        {
+          "name": "Register Customer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  pm.collectionVariables.set('token', pm.response.json().token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"customer1@test.com\",\n  \"password\": \"Customer@123\",\n  \"name\": \"Ahmed Ali\",\n  \"phone\": \"0612345678\",\n  \"address\": \"Mogadishu Hodan\",\n  \"role\": \"Customer\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/register"
+          }
+        },
+        {
+          "name": "Login Customer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  pm.collectionVariables.set('token', pm.response.json().token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"customer1@test.com\",\n  \"password\": \"Customer@123\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/login"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Customer - Orders",
+      "item": [
+        {
+          "name": "Create Order",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  pm.collectionVariables.set('orderId', pm.response.json().orderId);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productName\": \"Pizza Large\",\n  \"quantity\": 2,\n  \"deliveryAddress\": \"Hodan District, Street 5\",\n  \"scheduledDate\": \"2026-05-17T14:00:00\"\n}"
+            },
+            "url": "{{baseUrl}}/api/orders"
+          }
+        },
+        {
+          "name": "My Orders",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/orders/my" }
+        },
+        {
+          "name": "Get Order By Id",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/orders/{{orderId}}" }
+        }
+      ]
+    },
+    {
+      "name": "Customer - Payments",
+      "item": [
+        {
+          "name": "Create Payment",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": {{orderId}},\n  \"amount\": 25.50,\n  \"paymentMethod\": \"Cash\"\n}"
+            },
+            "url": "{{baseUrl}}/api/payments"
+          }
+        },
+        {
+          "name": "Payments By Order",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/payments/order/{{orderId}}" }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Get All Customers",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/admin/customers" }
+        },
+        {
+          "name": "Get All Drivers",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/admin/drivers" }
+        },
+        {
+          "name": "Create Driver",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"driver1@test.com\",\n  \"password\": \"Driver@123\",\n  \"driverName\": \"Hassan Driver\",\n  \"phone\": \"0611111111\",\n  \"vehicleType\": \"Motorcycle\"\n}"
+            },
+            "url": "{{baseUrl}}/api/admin/drivers"
+          }
+        },
+        {
+          "name": "Get All Orders",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/admin/orders" }
+        },
+        {
+          "name": "Assign Driver To Order",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"driverId\": {{driverId}}\n}"
+            },
+            "url": "{{baseUrl}}/api/admin/orders/{{orderId}}/assign-driver"
+          }
+        },
+        {
+          "name": "Update Order Status (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"InTransit\"\n}"
+            },
+            "url": "{{baseUrl}}/api/admin/orders/{{orderId}}/status"
+          }
+        },
+        {
+          "name": "Delivery Report",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/admin/reports/deliveries" }
+        },
+        {
+          "name": "Customer Report",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/admin/reports/customers" }
+        }
+      ]
+    },
+    {
+      "name": "Driver",
+      "item": [
+        {
+          "name": "Login Driver",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  pm.collectionVariables.set('token', pm.response.json().token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"driver1@test.com\",\n  \"password\": \"Driver@123\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/login"
+          }
+        },
+        {
+          "name": "My Assignments",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/drivers/assignments" }
+        },
+        {
+          "name": "Update Status",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"InTransit\"\n}"
+            },
+            "url": "{{baseUrl}}/api/drivers/orders/{{orderId}}/status"
+          }
+        },
+        {
+          "name": "Complete Delivery",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/api/drivers/orders/{{orderId}}/complete"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "Get My Notifications",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/notifications" }
+        },
+        {
+          "name": "Mark As Read",
+          "request": { "method": "PUT", "url": "{{baseUrl}}/api/notifications/1/read" }
+        }
+      ]
+    }
+  ]
+}

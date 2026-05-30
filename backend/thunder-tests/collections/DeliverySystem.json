@@ -1,0 +1,212 @@
+{
+  "client": "Thunder Client",
+  "collectionName": "Delivery System API",
+  "dateExported": "2026-05-16",
+  "version": "1.1",
+  "cols": [
+    {
+      "colName": "1. Auth",
+      "rows": [
+        {
+          "name": "Login Admin",
+          "url": "{{baseUrl}}/api/auth/login",
+          "method": "POST",
+          "headers": [{ "name": "Content-Type", "value": "application/json" }],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"email\": \"admin@delivery.com\",\n  \"password\": \"Admin@123\"\n}"
+          },
+          "tests": [
+            {
+              "type": "set-env-var",
+              "custom": "json.token",
+              "action": "setto",
+              "value": "{{token}}"
+            }
+          ]
+        },
+        {
+          "name": "Register Customer",
+          "url": "{{baseUrl}}/api/auth/register",
+          "method": "POST",
+          "headers": [{ "name": "Content-Type", "value": "application/json" }],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"email\": \"customer1@test.com\",\n  \"password\": \"Customer@123\",\n  \"name\": \"Ahmed Ali\",\n  \"phone\": \"0612345678\",\n  \"address\": \"Mogadishu Hodan\",\n  \"role\": \"Customer\"\n}"
+          }
+        },
+        {
+          "name": "Login Customer",
+          "url": "{{baseUrl}}/api/auth/login",
+          "method": "POST",
+          "headers": [{ "name": "Content-Type", "value": "application/json" }],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"email\": \"customer1@test.com\",\n  \"password\": \"Customer@123\"\n}"
+          }
+        },
+        {
+          "name": "Login Driver",
+          "url": "{{baseUrl}}/api/auth/login",
+          "method": "POST",
+          "headers": [{ "name": "Content-Type", "value": "application/json" }],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"email\": \"driver1@test.com\",\n  \"password\": \"Driver@123\"\n}"
+          }
+        }
+      ]
+    },
+    {
+      "colName": "2. Customer",
+      "rows": [
+        {
+          "name": "Create Order",
+          "url": "{{baseUrl}}/api/orders",
+          "method": "POST",
+          "headers": [
+            { "name": "Content-Type", "value": "application/json" },
+            { "name": "Authorization", "value": "Bearer {{token}}" }
+          ],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"productName\": \"Pizza Large\",\n  \"quantity\": 2,\n  \"deliveryAddress\": \"Hodan District, Street 5\",\n  \"scheduledDate\": \"2026-05-17T14:00:00\"\n}"
+          }
+        },
+        {
+          "name": "My Orders",
+          "url": "{{baseUrl}}/api/orders/my",
+          "method": "GET",
+          "headers": [{ "name": "Authorization", "value": "Bearer {{token}}" }]
+        },
+        {
+          "name": "Get Order",
+          "url": "{{baseUrl}}/api/orders/{{orderId}}",
+          "method": "GET",
+          "headers": [{ "name": "Authorization", "value": "Bearer {{token}}" }]
+        },
+        {
+          "name": "Create Payment",
+          "url": "{{baseUrl}}/api/payments",
+          "method": "POST",
+          "headers": [
+            { "name": "Content-Type", "value": "application/json" },
+            { "name": "Authorization", "value": "Bearer {{token}}" }
+          ],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"orderId\": {{orderId}},\n  \"amount\": 25.50,\n  \"paymentMethod\": \"Cash\"\n}"
+          }
+        }
+      ]
+    },
+    {
+      "colName": "3. Admin",
+      "rows": [
+        {
+          "name": "Get Customers",
+          "url": "{{baseUrl}}/api/admin/customers",
+          "method": "GET",
+          "headers": [{ "name": "Authorization", "value": "Bearer {{token}}" }]
+        },
+        {
+          "name": "Get Drivers",
+          "url": "{{baseUrl}}/api/admin/drivers",
+          "method": "GET",
+          "headers": [{ "name": "Authorization", "value": "Bearer {{token}}" }]
+        },
+        {
+          "name": "Create Driver",
+          "url": "{{baseUrl}}/api/admin/drivers",
+          "method": "POST",
+          "headers": [
+            { "name": "Content-Type", "value": "application/json" },
+            { "name": "Authorization", "value": "Bearer {{token}}" }
+          ],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"email\": \"driver1@test.com\",\n  \"password\": \"Driver@123\",\n  \"driverName\": \"Hassan Driver\",\n  \"phone\": \"0611111111\",\n  \"vehicleType\": \"Motorcycle\"\n}"
+          }
+        },
+        {
+          "name": "All Orders",
+          "url": "{{baseUrl}}/api/admin/orders",
+          "method": "GET",
+          "headers": [{ "name": "Authorization", "value": "Bearer {{token}}" }]
+        },
+        {
+          "name": "Assign Driver",
+          "url": "{{baseUrl}}/api/admin/orders/{{orderId}}/assign-driver",
+          "method": "PUT",
+          "headers": [
+            { "name": "Content-Type", "value": "application/json" },
+            { "name": "Authorization", "value": "Bearer {{token}}" }
+          ],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"driverId\": {{driverId}}\n}"
+          }
+        },
+        {
+          "name": "Delivery Report",
+          "url": "{{baseUrl}}/api/admin/reports/deliveries",
+          "method": "GET",
+          "headers": [{ "name": "Authorization", "value": "Bearer {{token}}" }]
+        },
+        {
+          "name": "Customer Report",
+          "url": "{{baseUrl}}/api/admin/reports/customers",
+          "method": "GET",
+          "headers": [{ "name": "Authorization", "value": "Bearer {{token}}" }]
+        }
+      ]
+    },
+    {
+      "colName": "4. Driver",
+      "rows": [
+        {
+          "name": "My Assignments",
+          "url": "{{baseUrl}}/api/drivers/assignments",
+          "method": "GET",
+          "headers": [{ "name": "Authorization", "value": "Bearer {{token}}" }]
+        },
+        {
+          "name": "Update Status",
+          "url": "{{baseUrl}}/api/drivers/orders/{{orderId}}/status",
+          "method": "PUT",
+          "headers": [
+            { "name": "Content-Type", "value": "application/json" },
+            { "name": "Authorization", "value": "Bearer {{token}}" }
+          ],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"status\": \"InTransit\"\n}"
+          }
+        },
+        {
+          "name": "Complete Delivery",
+          "url": "{{baseUrl}}/api/drivers/orders/{{orderId}}/complete",
+          "method": "PUT",
+          "headers": [{ "name": "Authorization", "value": "Bearer {{token}}" }]
+        }
+      ]
+    },
+    {
+      "colName": "5. Notifications",
+      "rows": [
+        {
+          "name": "Get Notifications",
+          "url": "{{baseUrl}}/api/notifications",
+          "method": "GET",
+          "headers": [{ "name": "Authorization", "value": "Bearer {{token}}" }]
+        },
+        {
+          "name": "Mark Read",
+          "url": "{{baseUrl}}/api/notifications/1/read",
+          "method": "PUT",
+          "headers": [{ "name": "Authorization", "value": "Bearer {{token}}" }]
+        }
+      ]
+    }
+  ]
+}
