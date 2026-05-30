@@ -1,4 +1,5 @@
 using System.Text;
+using DeliverySystem.Api;
 using DeliverySystem.Application.Interfaces;
 using DeliverySystem.Application.Services;
 using DeliverySystem.Infrastructure.Data;
@@ -32,8 +33,10 @@ builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddHostedService<DatabaseInitializer>();
 
-var jwtKey = builder.Configuration["Jwt:Key"]!;
+var jwtKey = builder.Configuration["Jwt:Key"]
+    ?? throw new InvalidOperationException("Jwt:Key is missing. Set Jwt__Key on Railway.");
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -104,32 +107,6 @@ app.UseExceptionHandler(errorApp =>
     });
 });
 
-app.Lifetime.ApplicationStarted.Register(() =>
-{
-    _ = Task.Run(async () =>
-    {
-        if (string.IsNullOrWhiteSpace(connectionString))
-        {
-            app.Logger.LogError("Database skipped: DefaultConnection is not configured.");
-            return;
-        }
-
-        try
-        {
-            await using var scope = app.Services.CreateAsyncScope();
-            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(90));
-            await db.Database.MigrateAsync(cts.Token);
-            await DbSeeder.SeedAsync(db);
-            app.Logger.LogInformation("Database migration and seed completed.");
-        }
-        catch (Exception ex)
-        {
-            app.Logger.LogError(ex, "Database migration or seed failed.");
-        }
-    });
-});
-
 if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 
@@ -141,8 +118,18 @@ app.MapGet("/health/db", async (AppDbContext db) =>
 {
     try
     {
-        await db.Database.CanConnectAsync();
-        return Results.Ok(new { status = "healthy", database = "connected" });
+        if (!await db.Database.CanConnectAsync())
+            return Results.Json(new { status = "unhealthy", database = "cannot connect" }, statusCode: 503);
+
+        var pending = await db.Database.GetPendingMigrationsAsync();
+        var userCount = await db.Users.CountAsync();
+        return Results.Ok(new
+        {
+            status = "healthy",
+            database = "connected",
+            pendingMigrations = pending.Count(),
+            users = userCount
+        });
     }
     catch (Exception ex)
     {

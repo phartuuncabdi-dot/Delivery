@@ -56,10 +56,17 @@ public class AuthService(AppDbContext db, ITokenService tokenService) : IAuthSer
 
     public async Task<AuthResponse> LoginAsync(LoginRequest request)
     {
+        if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
+            throw new UnauthorizedAccessException("Invalid email or password.");
+
         var user = await db.Users.FirstOrDefaultAsync(u => u.Email == request.Email && u.IsActive)
             ?? throw new UnauthorizedAccessException("Invalid email or password.");
 
-        if (!BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+        if (string.IsNullOrWhiteSpace(user.PasswordHash))
+            throw new UnauthorizedAccessException("Invalid email or password.");
+
+        var validPassword = BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash);
+        if (!validPassword)
             throw new UnauthorizedAccessException("Invalid email or password.");
 
         var token = tokenService.GenerateToken(user.UserId, user.Email, user.Role);
