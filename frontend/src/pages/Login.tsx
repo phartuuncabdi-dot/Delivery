@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Truck } from 'lucide-react';
-import { ApiError } from '../api/client';
+import { ApiError, isApiConfigured } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { getRoleHome } from '../components/ProtectedRoute';
 import { Alert, Button, Input } from '../components/ui';
@@ -64,6 +64,11 @@ export function Login() {
           </div>
           <h1 className="text-2xl font-bold text-slate-900">Sign in</h1>
           <p className="mt-1 text-sm text-slate-500">Enter your account credentials</p>
+          {!isApiConfigured && (
+            <div className="mt-4">
+              <Alert message="Vercel: set VITE_API_URL to your Railway URL (e.g. https://xxx.up.railway.app), then Redeploy." />
+            </div>
+          )}
           {error && <div className="mt-4"><Alert message={error} /></div>}
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
             <Input label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />

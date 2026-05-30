@@ -32,5 +32,9 @@ public class AuthController(IAuthService authService) : ControllerBase
         {
             return Unauthorized(new { message = ex.Message });
         }
+        catch (Exception)
+        {
+            return StatusCode(500, new { message = "Login failed due to a server error." });
+        }
     }
 }

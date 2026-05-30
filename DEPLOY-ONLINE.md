@@ -108,17 +108,24 @@ Admin waa la seed gareeyaa marka API ugu horreysa Neon ku xirnaado.
 2. **Root Directory:** `frontend`
 3. Framework: **Vite**
 
-### 3.3 Environment Variable
+### 3.3 Environment Variable (MUHIIM — haddii aadan sameyn login ma shaqeynayo)
 
-| Name | Value |
-|------|--------|
-| `VITE_API_URL` | `https://YOUR-RAILWAY-URL.up.railway.app` |
+1. Railway → backend service → **Settings** → **Networking** → copy domain (tusaale `https://delivery-navy-production.up.railway.app`)
+2. Tijaabi browser: `https://YOUR-RAILWAY-URL/health` → `{"status":"healthy"}`
+3. Vercel → project `delivery-navy-eta` → **Settings** → **Environment Variables**
 
-**MUHIIM:** Ha ku darin `/api` dhamaadka — code-ku wuu ku darayaa.
+| Name | Value | Environments |
+|------|--------|----------------|
+| `VITE_API_URL` | `https://YOUR-RAILWAY-URL.up.railway.app` | Production, Preview, Development |
+
+**MUHIIM:**
+- Ha ku darin `/api` dhamaadka
+- Ha ku darin `/` dhamaadka
+- Kadib **Deployments** → ugu dambeeyay → **⋯** → **Redeploy** (env cusub la'aan build-kii hore wuu isticmaalayaa URL madhan)
 
 ### 3.4 Deploy
-1. **Deploy** → hel `https://delivery-system-xxx.vercel.app`
-2. Login: `admin@delivery.com` / `Admin@123`
+1. **Deploy** / **Redeploy** kadib env
+2. Fur `https://delivery-navy-eta.vercel.app` → Login: `admin@delivery.com` / `Admin@123`
 
 ---
 

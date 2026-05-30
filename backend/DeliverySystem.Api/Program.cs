@@ -13,8 +13,13 @@ Environment.SetEnvironmentVariable("ASPNETCORE_URLS", $"http://0.0.0.0:{port}");
 var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+if (string.IsNullOrWhiteSpace(connectionString))
+    throw new InvalidOperationException(
+        "ConnectionStrings:DefaultConnection is missing. On Railway set ConnectionStrings__DefaultConnection.");
+
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(connectionString));
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
@@ -45,30 +50,68 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(policy =>
-        policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+    options.AddDefaultPolicy(policy => policy
+        .SetIsOriginAllowed(origin =>
+        {
+            if (string.IsNullOrEmpty(origin)) return false;
+            if (origin.StartsWith("http://localhost:", StringComparison.OrdinalIgnoreCase)) return true;
+            if (origin.EndsWith(".vercel.app", StringComparison.OrdinalIgnoreCase)) return true;
+            return false;
+        })
+        .AllowAnyHeader()
+        .AllowAnyMethod());
 });
 
 var app = builder.Build();
 
-app.Lifetime.ApplicationStarted.Register(() =>
+static void ApplyCorsHeaders(HttpContext context)
 {
-    _ = Task.Run(async () =>
+    var origin = context.Request.Headers.Origin.ToString();
+    if (string.IsNullOrEmpty(origin)) return;
+    if (origin.StartsWith("http://localhost:", StringComparison.OrdinalIgnoreCase)
+        || origin.EndsWith(".vercel.app", StringComparison.OrdinalIgnoreCase))
     {
-        try
-        {
-            await using var scope = app.Services.CreateAsyncScope();
-            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            await db.Database.MigrateAsync();
-            await DbSeeder.SeedAsync(db);
-            app.Logger.LogInformation("Database migration and seed completed.");
-        }
-        catch (Exception ex)
-        {
-            app.Logger.LogError(ex, "Database migration or seed failed.");
-        }
+        context.Response.Headers.AccessControlAllowOrigin = origin;
+        context.Response.Headers.AccessControlAllowMethods = "GET, POST, PUT, DELETE, OPTIONS";
+        context.Response.Headers.AccessControlAllowHeaders = "Content-Type, Authorization";
+    }
+}
+
+app.Use(async (context, next) =>
+{
+    ApplyCorsHeaders(context);
+    if (HttpMethods.IsOptions(context.Request.Method))
+    {
+        context.Response.StatusCode = StatusCodes.Status204NoContent;
+        return;
+    }
+    await next();
+});
+
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        ApplyCorsHeaders(context);
+        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+        context.Response.ContentType = "application/json";
+        await context.Response.WriteAsJsonAsync(new { message = "Server error. Check Railway logs and database connection." });
     });
 });
+
+try
+{
+    await using var scope = app.Services.CreateAsyncScope();
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await db.Database.MigrateAsync();
+    await DbSeeder.SeedAsync(db);
+    app.Logger.LogInformation("Database migration and seed completed.");
+}
+catch (Exception ex)
+{
+    app.Logger.LogCritical(ex, "Database migration or seed failed on startup.");
+    throw;
+}
 
 if (app.Environment.IsDevelopment())
     app.MapOpenApi();
