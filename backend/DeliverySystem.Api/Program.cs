@@ -15,11 +15,16 @@ builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 if (string.IsNullOrWhiteSpace(connectionString))
-    throw new InvalidOperationException(
-        "ConnectionStrings:DefaultConnection is missing. On Railway set ConnectionStrings__DefaultConnection.");
+{
+    Console.Error.WriteLine(
+        "WARNING: ConnectionStrings:DefaultConnection is missing. Set ConnectionStrings__DefaultConnection on Railway.");
+}
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(connectionString));
+{
+    if (!string.IsNullOrWhiteSpace(connectionString))
+        options.UseNpgsql(connectionString, npgsql => npgsql.CommandTimeout(60));
+});
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
@@ -99,19 +104,31 @@ app.UseExceptionHandler(errorApp =>
     });
 });
 
-try
+app.Lifetime.ApplicationStarted.Register(() =>
 {
-    await using var scope = app.Services.CreateAsyncScope();
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    await db.Database.MigrateAsync();
-    await DbSeeder.SeedAsync(db);
-    app.Logger.LogInformation("Database migration and seed completed.");
-}
-catch (Exception ex)
-{
-    app.Logger.LogCritical(ex, "Database migration or seed failed on startup.");
-    throw;
-}
+    _ = Task.Run(async () =>
+    {
+        if (string.IsNullOrWhiteSpace(connectionString))
+        {
+            app.Logger.LogError("Database skipped: DefaultConnection is not configured.");
+            return;
+        }
+
+        try
+        {
+            await using var scope = app.Services.CreateAsyncScope();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(90));
+            await db.Database.MigrateAsync(cts.Token);
+            await DbSeeder.SeedAsync(db);
+            app.Logger.LogInformation("Database migration and seed completed.");
+        }
+        catch (Exception ex)
+        {
+            app.Logger.LogError(ex, "Database migration or seed failed.");
+        }
+    });
+});
 
 if (app.Environment.IsDevelopment())
     app.MapOpenApi();
@@ -120,6 +137,18 @@ app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapGet("/health", () => Results.Ok(new { status = "healthy" }));
+app.MapGet("/health/db", async (AppDbContext db) =>
+{
+    try
+    {
+        await db.Database.CanConnectAsync();
+        return Results.Ok(new { status = "healthy", database = "connected" });
+    }
+    catch (Exception ex)
+    {
+        return Results.Json(new { status = "unhealthy", database = ex.Message }, statusCode: 503);
+    }
+});
 app.MapControllers();
 
 app.Run();

@@ -74,7 +74,7 @@ git push -u origin main
 
 | Name | Value |
 |------|--------|
-| `ConnectionStrings__DefaultConnection` | Neon Npgsql connection string (kor) |
+| `ConnectionStrings__DefaultConnection` | Neon Npgsql (hal saf, aan lahayn xariiq cusub): `Host=ep-xxx.pooler...;Database=neondb;Username=neondb_owner;Password=YOUR_PASSWORD;SSL Mode=Require;Trust Server Certificate=true;Timeout=30` |
 | `Jwt__Key` | `DeliverySystemSecretKey2026SchoolProject!` |
 | `Jwt__Issuer` | `DeliverySystem` |
 | `Jwt__Audience` | `DeliverySystemUsers` |
