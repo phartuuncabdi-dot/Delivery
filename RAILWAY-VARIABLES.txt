@@ -1,0 +1,7 @@
+# Railway RAW Editor — copy ALL lines (NO &channel_binding — Railway cuts at &)
+
+DATABASE_URL=postgresql://neondb_owner:YOUR_PASSWORD@ep-curly-grass-aqd4yuvv-pooler.c-8.us-east-1.aws.neon.tech/neondb?sslmode=require
+Jwt__Key=DeliverySystemSecretKey2026SchoolProject!
+Jwt__Issuer=DeliverySystem
+Jwt__Audience=DeliverySystemUsers
+ASPNETCORE_ENVIRONMENT=Production

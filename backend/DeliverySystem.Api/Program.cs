@@ -121,7 +121,12 @@ app.MapGet("/health/db", async (IServiceProvider sp) =>
         {
             status = "unhealthy",
             database = "DATABASE_URL not configured on Railway",
-            hint = "Add DATABASE_URL = postgresql://... from Neon dashboard"
+            hint = "Railway → your backend service → Variables → RAW Editor → add DATABASE_URL (Neon URI)",
+            envCheck = new
+            {
+                DATABASE_URL = string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DATABASE_URL")) ? "missing" : "set",
+                ConnectionStrings__DefaultConnection = string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")) ? "missing" : "set"
+            }
         }, statusCode: 503);
     }
 
