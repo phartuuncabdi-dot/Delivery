@@ -14,18 +14,15 @@ Environment.SetEnvironmentVariable("ASPNETCORE_URLS", $"http://0.0.0.0:{port}");
 var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var connectionString = DatabaseConnectionResolver.Resolve(builder.Configuration);
 if (string.IsNullOrWhiteSpace(connectionString))
 {
-    Console.Error.WriteLine(
-        "WARNING: ConnectionStrings:DefaultConnection is missing. Set ConnectionStrings__DefaultConnection on Railway.");
+    throw new InvalidOperationException(
+        "Database connection not configured. On Railway set DATABASE_URL (Neon URI) or ConnectionStrings__DefaultConnection.");
 }
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-{
-    if (!string.IsNullOrWhiteSpace(connectionString))
-        options.UseNpgsql(connectionString, npgsql => npgsql.CommandTimeout(60));
-});
+    options.UseNpgsql(connectionString, npgsql => npgsql.CommandTimeout(60)));
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
@@ -116,10 +113,19 @@ app.UseAuthorization();
 app.MapGet("/health", () => Results.Ok(new { status = "healthy" }));
 app.MapGet("/health/db", async (AppDbContext db) =>
 {
+    var dbInfo = DatabaseConnectionResolver.Describe(connectionString);
     try
     {
         if (!await db.Database.CanConnectAsync())
-            return Results.Json(new { status = "unhealthy", database = "cannot connect" }, statusCode: 503);
+        {
+            return Results.Json(new
+            {
+                status = "unhealthy",
+                database = "cannot connect",
+                hint = "Reset Neon password, copy DATABASE_URL, paste on Railway, redeploy.",
+                config = dbInfo
+            }, statusCode: 503);
+        }
 
         var pending = await db.Database.GetPendingMigrationsAsync();
         var userCount = await db.Users.CountAsync();
@@ -128,12 +134,18 @@ app.MapGet("/health/db", async (AppDbContext db) =>
             status = "healthy",
             database = "connected",
             pendingMigrations = pending.Count(),
-            users = userCount
+            users = userCount,
+            config = dbInfo
         });
     }
     catch (Exception ex)
     {
-        return Results.Json(new { status = "unhealthy", database = ex.Message }, statusCode: 503);
+        return Results.Json(new
+        {
+            status = "unhealthy",
+            database = ex.Message,
+            config = dbInfo
+        }, statusCode: 503);
     }
 });
 app.MapControllers();

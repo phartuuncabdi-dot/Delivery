@@ -30,7 +30,9 @@ public sealed class DatabaseInitializer(IServiceScopeFactory scopeFactory, ILogg
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Database init failed after {Attempt} attempts.", attempt);
+                logger.LogError(
+                    ex,
+                    "Database init failed. If Neon password changed, update DATABASE_URL on Railway.");
             }
         }
     }

@@ -1,5 +1,5 @@
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Host=YOUR_NEON_HOST;Database=neondb;Username=YOUR_USER;Password=YOUR_PASSWORD;SSL Mode=Require;Trust Server Certificate=true"
+    "DefaultConnection": "postgresql://neondb_owner:YOUR_PASSWORD@ep-curly-grass-aqd4yuvv-pooler.c-8.us-east-1.aws.neon.tech/neondb?sslmode=require"
   }
 }

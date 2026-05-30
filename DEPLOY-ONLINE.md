@@ -74,7 +74,10 @@ git push -u origin main
 
 | Name | Value |
 |------|--------|
-| `ConnectionStrings__DefaultConnection` | Neon Npgsql (hal saf, aan lahayn xariiq cusub): `Host=ep-xxx.pooler...;Database=neondb;Username=neondb_owner;Password=YOUR_PASSWORD;SSL Mode=Require;Trust Server Certificate=true;Timeout=30` |
+| `DATABASE_URL` | **Ugu fudud:** Neon dashboard → Connection string → **URI** (tusaale `postgresql://neondb_owner:PASSWORD@ep-xxx-pooler.../neondb?sslmode=require`) — copy oo dhan |
+| `ConnectionStrings__DefaultConnection` | Ama Npgsql format hal saf (haddii aadan DATABASE_URL isticmaalin) |
+
+**MUHIIM:** Haddii password Neon la beddelay, Railway `DATABASE_URL` waa in la cusbooneysiiyaa. Semicolon `;` ee Npgsql mararka qaarkood wuu jebiyaa Railway — isticmaal **DATABASE_URL** URI.
 | `Jwt__Key` | `DeliverySystemSecretKey2026SchoolProject!` |
 | `Jwt__Issuer` | `DeliverySystem` |
 | `Jwt__Audience` | `DeliverySystemUsers` |
