@@ -18,7 +18,14 @@ public static class DatabaseConnectionResolver
         foreach (var raw in candidates)
         {
             if (string.IsNullOrWhiteSpace(raw)) continue;
-            return Normalize(raw);
+            try
+            {
+                return Normalize(raw);
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Invalid database connection value: {ex.Message}");
+            }
         }
 
         return null;
